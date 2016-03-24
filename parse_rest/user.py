@@ -13,7 +13,7 @@
 
 
 from parse_rest.core import ResourceRequestLoginRequired, ParseError
-from parse_rest.connection import API_ROOT
+from parse_rest.connection import api_root
 from parse_rest.datatypes import ParseResource, ParseType
 from parse_rest.query import QueryManager
 
@@ -33,7 +33,10 @@ class User(ParseResource):
     A User is like a regular Parse object (can be modified and saved) but
     it requires additional methods and functionality
     '''
-    ENDPOINT_ROOT = '/'.join([API_ROOT, 'users'])
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join([api_root(), 'users'])
+
     PROTECTED_ATTRIBUTES = ParseResource.PROTECTED_ATTRIBUTES + [
         'username', 'sessionToken', 'emailVerified']
 
@@ -83,12 +86,12 @@ class User(ParseResource):
 
     @staticmethod
     def login(username, passwd):
-        login_url = '/'.join([API_ROOT, 'login'])
+        login_url = '/'.join([api_root(), 'login'])
         return User(**User.GET(login_url, username=username, password=passwd))
 
     @staticmethod
     def login_auth(auth):
-        login_url = User.ENDPOINT_ROOT
+        login_url = User.endpoint_root()
         return User(**User.POST(login_url, authData=auth))
 
     @staticmethod
@@ -96,7 +99,7 @@ class User(ParseResource):
         '''Trigger Parse\'s Password Process. Return True/False
         indicate success/failure on the request'''
 
-        url = '/'.join([API_ROOT, 'requestPasswordReset'])
+        url = '/'.join([api_root(), 'requestPasswordReset'])
         try:
             User.POST(url, email=email)
             return True

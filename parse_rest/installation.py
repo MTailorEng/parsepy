@@ -11,17 +11,21 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from parse_rest.connection import API_ROOT
+from parse_rest.connection import api_root
 from parse_rest.datatypes import ParseResource
 from parse_rest.query import QueryManager
 
 
 class Installation(ParseResource):
-    ENDPOINT_ROOT = '/'.join([API_ROOT, 'installations'])
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join([api_root(), 'installations'])
 
 
 class Push(ParseResource):
-    ENDPOINT_ROOT = '/'.join([API_ROOT, 'push'])
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join([api_root(), 'push'])
 
     @classmethod
     def _send(cls, data, where=None, **kw):

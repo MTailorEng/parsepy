@@ -33,12 +33,12 @@ class QueryManager(object):
 
     def _fetch(self, **kw):
         klass = self.model_class
-        uri = self.model_class.ENDPOINT_ROOT
+        uri = self.model_class.endpoint_root()
         return [klass(**it) for it in klass.GET(uri, **kw).get('results')]
 
     def _count(self, **kw):
         kw.update({"count": 1})
-        return self.model_class.GET(self.model_class.ENDPOINT_ROOT, **kw).get('count')
+        return self.model_class.GET(self.model_class.endpoint_root(), **kw).get('count')
 
     def all(self):
         return Queryset(self)

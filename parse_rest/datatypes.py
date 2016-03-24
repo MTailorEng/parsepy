@@ -16,7 +16,7 @@ import base64
 import datetime
 import six
 
-from parse_rest.connection import API_ROOT, ParseBase
+from parse_rest.connection import api_root, ParseBase
 from parse_rest.query import QueryManager
 
 
@@ -183,7 +183,7 @@ class File(ParseType):
     def __init__(self, **kw):
         name = kw.get('name')
         self._name = name
-        self._api_url = '/'.join([API_ROOT, 'files', name])
+        self._api_url = '/'.join([api_root(), 'files', name])
         self._file_url = kw.get('url')
 
     def _to_native(self):
@@ -199,7 +199,9 @@ class File(ParseType):
 
 
 class Function(ParseBase):
-    ENDPOINT_ROOT = '/'.join((API_ROOT, 'functions'))
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join((api_root(), 'functions'))
 
     def __init__(self, name):
         self.name = name
@@ -256,7 +258,7 @@ class ParseResource(ParseBase):
             return self._create(batch=batch)
 
     def _create(self, batch=False):
-        uri = self.__class__.ENDPOINT_ROOT
+        uri = self.__class__.endpoint_root()
         response = self.__class__.POST(uri, batch=batch, **self._to_native())
 
         def call_back(response_dict):
@@ -290,7 +292,7 @@ class ParseResource(ParseBase):
 
     @property
     def _absolute_url(self):
-        return '%s/%s' % (self.__class__.ENDPOINT_ROOT, self.objectId)
+        return '%s/%s' % (self.__class__.endpoint_root(), self.objectId)
 
     createdAt = property(_get_created_datetime, _set_created_datetime)
     updatedAt = property(_get_updated_datetime, _set_updated_datetime)
@@ -311,7 +313,9 @@ class ObjectMetaclass(type):
 
 
 class Object(six.with_metaclass(ObjectMetaclass, ParseResource)):
-    ENDPOINT_ROOT = '/'.join([API_ROOT, 'classes'])
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join([api_root(), 'classes', cls.__name__])
 
     @classmethod
     def factory(cls, class_name):
@@ -331,16 +335,13 @@ class Object(six.with_metaclass(ObjectMetaclass, ParseResource)):
 
     @classmethod
     def set_endpoint_root(cls):
-        root = '/'.join([API_ROOT, 'classes', cls.__name__])
-        if cls.ENDPOINT_ROOT != root:
-            cls.ENDPOINT_ROOT = root
-        return cls.ENDPOINT_ROOT
+        return cls.endpoint_root()
 
     @property
     def _absolute_url(self):
         if not self.objectId:
             return None
-        return '/'.join([self.__class__.ENDPOINT_ROOT, self.objectId])
+        return '/'.join([self.__class__.endpoint_root(), self.objectId])
 
     @property
     def as_pointer(self):

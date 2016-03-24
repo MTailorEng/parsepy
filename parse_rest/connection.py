@@ -19,26 +19,35 @@ import json
 
 from parse_rest import core
 
-API_ROOT = 'https://api.parse.com/1'
-ACCESS_KEYS = {}
+_API_ROOT = 'https://api.parse.com/1'
+_ACCESS_KEYS = {}
 
+def access_keys():
+    return _ACCESS_KEYS
+
+def api_root():
+    return _API_ROOT
+
+def set_api_root(value):
+    global _API_ROOT
+    _API_ROOT = value
 
 # Connection can sometimes hang forever on SSL handshake
 CONNECTION_TIMEOUT = 60
 
 def register(app_id, rest_key, **kw):
-    global ACCESS_KEYS
-    ACCESS_KEYS = {
+    global _ACCESS_KEYS
+    _ACCESS_KEYS = {
         'app_id': app_id,
         'rest_key': rest_key
         }
-    ACCESS_KEYS.update(**kw)
+    _ACCESS_KEYS.update(**kw)
 
 
 def master_key_required(func):
     '''decorator describing methods that require the master key'''
     def ret(obj, *args, **kw):
-        conn = ACCESS_KEYS
+        conn = _ACCESS_KEYS
         if not (conn and conn.get('master_key')):
             message = '%s requires the master key' % func.__name__
             raise core.ParseError(message)
@@ -47,7 +56,9 @@ def master_key_required(func):
 
 
 class ParseBase(object):
-    ENDPOINT_ROOT = API_ROOT
+    @classmethod
+    def endpoint_root(cls):
+        return api_root()
 
     @classmethod
     def execute(cls, uri, http_verb, extra_headers=None, batch=False, **kw):
@@ -63,15 +74,15 @@ class ParseBase(object):
                 ret["body"] = kw
             return ret
 
-        if not ('app_id' in ACCESS_KEYS and 'rest_key' in ACCESS_KEYS):
+        if not ('app_id' in _ACCESS_KEYS and 'rest_key' in _ACCESS_KEYS):
             raise core.ParseError('Missing connection credentials')
 
-        app_id = ACCESS_KEYS.get('app_id')
-        rest_key = ACCESS_KEYS.get('rest_key')
-        master_key = ACCESS_KEYS.get('master_key')
+        app_id = _ACCESS_KEYS.get('app_id')
+        rest_key = _ACCESS_KEYS.get('rest_key')
+        master_key = _ACCESS_KEYS.get('master_key')
 
         headers = extra_headers or {}
-        url = uri if uri.startswith(API_ROOT) else cls.ENDPOINT_ROOT + uri
+        url = uri if uri.startswith(api_root()) else cls.endpoint_root() + uri
         data = kw and json.dumps(kw) or "{}"
         if http_verb == 'GET' and data:
             url += '?%s' % urlencode(kw)
@@ -121,7 +132,9 @@ class ParseBase(object):
 
 class ParseBatcher(ParseBase):
     """Batch together create, update or delete operations"""
-    ENDPOINT_ROOT = '/'.join((API_ROOT, 'batch'))
+    @classmethod
+    def endpoint_root(cls):
+        return '/'.join((api_root(), 'batch'))
 
     def batch(self, methods):
         """
