@@ -13,19 +13,9 @@
 
 
 from parse_rest.core import ResourceRequestLoginRequired, ParseError
-from parse_rest.connection import api_root
+from parse_rest.connection import api_root, access_keys
 from parse_rest.datatypes import ParseResource, ParseType
 from parse_rest.query import QueryManager
-
-
-def login_required(func):
-    '''decorator describing User methods that need to be logged in'''
-    def ret(obj, *args, **kw):
-        if not hasattr(obj, 'sessionToken'):
-            message = '%s requires a logged-in session' % func.__name__
-            raise ResourceRequestLoginRequired(message)
-        return func(obj, *args, **kw)
-    return ret
 
 
 class User(ParseResource):
@@ -53,13 +43,25 @@ class User(ParseResource):
         if user.objectId == self.objectId and user.sessionToken == session_token:
             self.sessionToken = session_token
 
-    @login_required
+    def _assert_logged_in_or_master_key(self):
+        '''Checks that master key is set or user is logged in.
+        If user is logged in and master key is not set, returns extra headers
+        that contain the session token.
+
+        Otherwise returns an empty extra headers object.'''
+        if 'master_key' in access_keys():
+            return {}
+        if hasattr(self, 'sessionToken'):
+            return {'X-Parse-Session-Token': self.sessionToken}
+        raise ResourceRequestLoginRequired('Master key or logged-in session required')
+
     def session_header(self):
+        if not hasattr(self, 'sessionToken'):
+            raise ResourceRequestLoginRequired('Logged-in session required')
         return {'X-Parse-Session-Token': self.sessionToken}
 
-    @login_required
     def save(self, batch=False):
-        session_header = {'X-Parse-Session-Token': self.sessionToken}
+        session_header = self._assert_logged_in_or_master_key()
         url = self._absolute_url
         data = self._to_native()
 
@@ -73,9 +75,8 @@ class User(ParseResource):
         else:
             call_back(response)
 
-    @login_required
     def delete(self):
-        session_header = {'X-Parse-Session-Token': self.sessionToken}
+        session_header = self._assert_logged_in_or_master_key()
         return User.DELETE(self._absolute_url, extra_headers=session_header)
 
     @staticmethod
