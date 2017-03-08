@@ -33,7 +33,7 @@ def set_api_root(value):
     _API_ROOT = value
 
 # Connection can sometimes hang forever on SSL handshake
-CONNECTION_TIMEOUT = 60
+CONNECTION_TIMEOUT = 120
 
 def register(app_id, rest_key, **kw):
     global _ACCESS_KEYS
