@@ -16,6 +16,7 @@ from six.moves.urllib.error import HTTPError
 from six.moves.urllib.parse import urlencode
 
 import json
+from urlparse import urlparse
 
 from parse_rest import core
 
@@ -31,6 +32,9 @@ def api_root():
 def set_api_root(value):
     global _API_ROOT
     _API_ROOT = value
+
+def _api_root_host():
+    return urlparse(_API_ROOT).netloc
 
 # Connection can sometimes hang forever on SSL handshake
 CONNECTION_TIMEOUT = 120
@@ -69,7 +73,7 @@ class ParseBase(object):
         command.
         """
         if batch:
-            ret = {"method": http_verb, "path": uri.split("parse.com", 1)[1]}
+            ret = {"method": http_verb, "path": uri.split(_api_root_host(), 1)[1]}
             if kw:
                 ret["body"] = kw
             return ret

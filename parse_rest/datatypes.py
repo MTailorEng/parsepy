@@ -358,8 +358,8 @@ class Object(six.with_metaclass(ObjectMetaclass, ParseResource)):
                 'amount': amount
                 }
             }
-        self.__class__.PUT(self._absolute_url, **payload)
-        self.__dict__[key] += amount
+        response = self.__class__.PUT(self._absolute_url, **payload)
+        self.__dict__.update(response)
 
     def removeRelation(self, key, className, objectsId):
         self.manageRelation('RemoveRelation', key, className, objectsId)
