@@ -10,7 +10,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+from __future__ import unicode_literals
 
 import base64
 import datetime
@@ -49,7 +49,7 @@ class ParseType(object):
 
         if is_object and not as_pointer:
             return dict([(k, ParseType.convert_to_parse(v, as_pointer=True))
-                         for k, v in list(python_object._editable_attrs.items())
+                         for k, v in python_object._editable_attrs.items()
                          ])
 
         python_type = ParseResource if is_object else type(python_object)
@@ -218,7 +218,7 @@ class ParseResource(ParseBase):
     def _editable_attrs(self):
         protected_attrs = self.__class__.PROTECTED_ATTRIBUTES
         allowed = lambda a: a not in protected_attrs and not a.startswith('_')
-        return dict([(k, v) for k, v in list(self.__dict__.items()) if allowed(k)])
+        return dict([(k, v) for k, v in self.__dict__.items() if allowed(k)])
 
     def __init__(self, **kw):
         self.objectId = None

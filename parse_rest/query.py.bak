@@ -120,7 +120,7 @@ class Queryset(object):
 
     def filter(self, **kw):
         q = copy.deepcopy(self)
-        for name, value in list(kw.items()):
+        for name, value in kw.items():
             parse_value = Queryset.convert_to_parse(value)
             attr, operator = Queryset.extract_filter_operator(name)
             if operator is None:

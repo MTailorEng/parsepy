@@ -16,7 +16,7 @@ from six.moves.urllib.error import HTTPError
 from six.moves.urllib.parse import urlencode
 
 import json
-from urllib.parse import urlparse
+from urlparse import urlparse
 
 from parse_rest import core
 
@@ -99,7 +99,7 @@ class ParseBase(object):
         request.add_header('X-Parse-Application-Id', app_id)
         request.add_header('X-Parse-REST-API-Key', rest_key)
 
-        if master_key and 'X-Parse-Session-Token' not in list(headers.keys()):
+        if master_key and 'X-Parse-Session-Token' not in headers.keys():
             request.add_header('X-Parse-Master-Key', master_key)
 
         request.get_method = lambda: http_verb
